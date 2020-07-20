@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <canvas id="canvas" width="300" height="300"></canvas>
+    <script>
+      window.onload = function () {
+        let canvas = document.getElementById("canvas");
+        let gl = canvas.getContext("webgl");
+
+        let VSHADER_SOURCE = `
+          attribute vec4 a_Position;
+          uniform float u_CosB,u_SinB;
+          void main(){
+            // 使用 . 来访问每个分量
+            gl_Position.x = a_Position.x * u_CosB - a_Position.y * u_SinB;
+            gl_Position.y = a_Position.x * u_SinB + a_Position.y * u_CosB;
+            gl_Position.z = a_Position.z;
+            gl_Position.w = a_Position.w;
+          }
+        `;
+        let FSHADER_SOURCE = `
+          void main(){
+            gl_FragColor = vec4(1.0,0.0,0.0,1.0);
+          }
+        `;
+        let ANGLE = 90.0;
+        // init shaders
+        let vShader = gl.createShader(gl.VERTEX_SHADER);
+        let fShader = gl.createShader(gl.FRAGMENT_SHADER);
+        gl.shaderSource(vShader, VSHADER_SOURCE);
+        gl.shaderSource(fShader, FSHADER_SOURCE);
+        gl.compileShader(vShader);
+        gl.compileShader(fShader);
+        let vComp = gl.getShaderParameter(vShader, gl.COMPILE_STATUS);
+        let fComp = gl.getShaderParameter(fShader, gl.COMPILE_STATUS);
+        // init program
+        let program = gl.createProgram();
+        gl.attachShader(program, vShader);
+        gl.attachShader(program, fShader);
+        gl.linkProgram(program);
+        let linked = gl.getProgramParameter(program, gl.LINK_STATUS);
+        gl.program = program;
+        gl.useProgram(program);
+        // set point location
+        let vertices = new Float32Array([0.0, 0.5, -0.5, -0.5, 0.5, -0.5]);
+        let point_num = 3;
+        let vertexBuffer = gl.createBuffer(); //创建缓冲区对象   deleteBuffer
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer); //将缓冲区对象绑定到目标
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW); //像缓冲区写入数据
+        let a_Position = gl.getAttribLocation(gl.program, "a_Position");
+        gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0); //将缓冲区对象分配给变量
+        gl.enableVertexAttribArray(a_Position); //连接a_Position与分配给它的缓冲区对象  disableVertexAttribArray
+
+        //handle
+        let radian = (Math.PI * ANGLE) / 180.0;
+        let cosB = Math.cos(radian);
+        let sinB = Math.sin(radian);
+        let u_CosB = gl.getUniformLocation(gl.program, "u_CosB");
+        let u_SinB = gl.getUniformLocation(gl.program, "u_SinB");
+        gl.uniform1f(u_CosB, cosB);
+        gl.uniform1f(u_SinB, sinB);
+        // paint
+        gl.clearColor(0, 0, 0, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.TRIANGLES, 0, point_num);
+      };
+    </script>
+  </body>
+</html>

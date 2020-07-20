@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <canvas id="canvas" width="300" height="300"></canvas>
+    <script>
+      window.onload = function () {
+        let canvas = document.getElementById("canvas");
+        let gl = canvas.getContext("webgl");
+        // mat4表示4x4矩阵
+        let VSHADER_SOURCE = `
+          attribute vec4 a_Position;
+          uniform mat4 u_xformMatrix;
+          void main(){
+            gl_Position = u_xformMatrix * a_Position; //顺序会影响结果
+          }
+        `;
+        let FSHADER_SOURCE = `
+          void main(){
+            gl_FragColor = vec4(1.0,0.0,0.0,1.0);
+          }
+        `;
+        let Tx = 0.5;
+        let Ty = 0.5;
+        let Tz = 0.0;
+        // init shaders
+        let vShader = gl.createShader(gl.VERTEX_SHADER);
+        let fShader = gl.createShader(gl.FRAGMENT_SHADER);
+        gl.shaderSource(vShader, VSHADER_SOURCE);
+        gl.shaderSource(fShader, FSHADER_SOURCE);
+        gl.compileShader(vShader);
+        gl.compileShader(fShader);
+        let vComp = gl.getShaderParameter(vShader, gl.COMPILE_STATUS);
+        let fComp = gl.getShaderParameter(fShader, gl.COMPILE_STATUS);
+        // init program
+        let program = gl.createProgram();
+        gl.attachShader(program, vShader);
+        gl.attachShader(program, fShader);
+        gl.linkProgram(program);
+        let linked = gl.getProgramParameter(program, gl.LINK_STATUS);
+        gl.program = program;
+        gl.useProgram(program);
+        // set point location
+        let vertices = new Float32Array([0.0, 0.5, -0.5, -0.5, 0.5, -0.5]);
+        let point_num = 3;
+        let vertexBuffer = gl.createBuffer(); //创建缓冲区对象   deleteBuffer
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer); //将缓冲区对象绑定到目标
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW); //像缓冲区写入数据
+        let a_Position = gl.getAttribLocation(gl.program, "a_Position");
+        gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0); //将缓冲区对象分配给变量
+        gl.enableVertexAttribArray(a_Position); //连接a_Position与分配给它的缓冲区对象  disableVertexAttribArray
+
+        //handle
+        //创建平移矩阵
+        let xformMatrix = new Float32Array([
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          Tx,
+          Ty,
+          Tz,
+          1.0,
+        ]);
+        let u_xformMatrix = gl.getUniformLocation(gl.program, "u_xformMatrix");
+        //v表示传输多个数据值，即类型化数组
+        gl.uniformMatrix4fv(u_xformMatrix, false, xformMatrix);
+        // paint
+        gl.clearColor(0, 0, 0, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.TRIANGLES, 0, point_num);
+      };
+    </script>
+  </body>
+</html>
