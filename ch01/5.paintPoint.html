@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>鼠标点击绘制点，不同颜色</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas width="300" height="300" id="example">33</canvas>
+    <script>
+      window.onload = () => {
+        let canvas = document.getElementById("example");
+        let gl = canvas.getContext("webgl");
+        //每次绘制结束，颜色缓存区都会被清空；所以要使用数组进行保存
+        let points = [];
+        let colors = [];
+
+        let VSHADER_SOURCE = `
+          attribute vec4 a_Position;
+          attribute float a_PointSize;
+          void main(){
+            gl_Position = a_Position;
+            gl_PointSize = a_PointSize;
+          }
+        `;
+        let FSHADER_SOURCE = `
+          precision mediump float; //精度限定：指定变量的范围以及精度
+          uniform vec4 u_FragColor;
+          void main(){
+            gl_FragColor = u_FragColor;
+          }
+        `;
+        //initShaders
+        let vShader = gl.createShader(gl.VERTEX_SHADER);
+        let fShader = gl.createShader(gl.FRAGMENT_SHADER);
+        gl.shaderSource(vShader, VSHADER_SOURCE);
+        gl.shaderSource(fShader, FSHADER_SOURCE);
+        gl.compileShader(vShader);
+        gl.compileShader(fShader);
+        let vComp = gl.getShaderParameter(vShader, gl.COMPILE_STATUS);
+        let fComp = gl.getShaderParameter(fShader, gl.COMPILE_STATUS);
+        if (!vComp) {
+          console.log("delete vComp");
+          gl.deleteShader(vShader);
+        }
+        if (!fComp) {
+          console.log("delete fComp");
+          gl.deleteShader(fShader);
+        }
+        //program
+        let program = gl.createProgram();
+        gl.attachShader(program, vShader);
+        gl.attachShader(program, fShader);
+        gl.linkProgram(program);
+        let linked = gl.getProgramParameter(program, gl.LINK_STATUS);
+        if (!linked) {
+          gl.deleteProgram(program);
+          gl.deleteShader(vShader);
+          gl.deleteShader(fShader);
+        }
+        gl.program = program;
+
+        let a_Position = gl.getAttribLocation(gl.program, "a_Position");
+        let a_PointSize = gl.getAttribLocation(gl.program, "a_PointSize");
+        let u_FragColor = gl.getUniformLocation(gl.program, "u_FragColor");
+        if (!a_PointSize || !a_PointSize || !u_FragColor) {
+          console.log("Failed get location");
+          return;
+        }
+
+        canvas.addEventListener("mousedown", function (ev) {
+          let width = 300;
+          let height = 300;
+          let x = (ev.clientX - width / 2) / (width / 2);
+          let y = -(ev.clientY - height / 2) / (height / 2);
+
+          points.push({ x, y });
+          colors.push({
+            r: Math.random(),
+            g: Math.random(),
+            b: Math.random(),
+            a: 1.0,
+          });
+
+          gl.clearColor(0, 0, 0, 1);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          for (let i = 0; i < points.length; i++) {
+            gl.vertexAttrib3f(a_Position, points[i].x, points[i].y, 0.0);
+            gl.vertexAttrib1f(a_PointSize, 10);
+            gl.uniform4f(
+              u_FragColor,
+              colors[i].r,
+              colors[i].g,
+              colors[i].b,
+              colors[i].a
+            );
+            gl.drawArrays(gl.POINT, 0, 1);
+          }
+        });
+
+        gl.clearColor(0, 0, 0, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.useProgram(program);
+      };
+    </script>
+  </body>
+</html>

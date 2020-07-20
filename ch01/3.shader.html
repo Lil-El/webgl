@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas width="100" height="100" id="example">11</canvas>
+    <script>
+      //shader是WebGL的核心机制（着色器）
+      // vertex是顶点着色器：描述一个点的特效，位置，大小等
+      // fragment是片元着色器：可以看为一个像素（严格来说：fragment包含了该像素的颜色、位置和其他信息）
+      /**
+       * 大部分的webgl的流程是：
+       * 获取gl上下文
+       * 初始化shader
+       * 指定背景并清空
+       * 渲染
+       */
+      window.onload = () => {
+        let canvas = document.getElementById("example");
+
+        let gl = canvas.getContext("webgl");
+
+        //vec4类型：4个float类型分量
+
+        //设置坐标和大小   顶点着色器vertex
+        let VSHADER_SOURCE = `
+          void main(){
+            gl_Position = vec4(0.0,0.0,0.0,1.0); //表示x、y、z的坐标、齐次坐标
+            gl_PointSize = 10.0;
+          }
+        `;
+        //设置颜色
+        let FSHADER_SOURCE = `
+          void main(){
+            gl_FragColor = vec4(1.0,0.0,0.0,1.0);
+          }
+        `;
+        //创建两个着色器
+        let vShader = gl.createShader(gl.VERTEX_SHADER);
+        //设置着色器的source
+        gl.shaderSource(vShader, VSHADER_SOURCE);
+        //compile着色器
+        gl.compileShader(vShader);
+        //获取着色器的编译结果
+        let vCompiled = gl.getShaderParameter(vShader, gl.COMPILE_STATUS);
+        if (!vCompiled) gl.deleteShader(vShader);
+
+        let fShader = gl.createShader(gl.FRAGMENT_SHADER);
+        gl.shaderSource(fShader, FSHADER_SOURCE);
+        gl.compileShader(fShader);
+        let fCompiled = gl.getShaderParameter(fShader, gl.COMPILE_STATUS);
+        if (!fCompiled) gl.deleteShader(fShader);
+
+        //创建program，并添加shaders
+        let program = gl.createProgram();
+        gl.attachShader(program, vShader);
+        gl.attachShader(program, fShader);
+        //连接到program上
+        gl.linkProgram(program);
+        //查询link结果
+        let linked = gl.getProgramParameter(program, gl.LINK_STATUS);
+        if (!linked) {
+          gl.deleteProgram(program);
+          gl.deleteShader(vShader);
+          gl.deleteShader(fShader);
+        }
+
+        //使用
+        gl.useProgram(program);
+        gl.program = program;
+
+        gl.clearColor(0, 0, 0, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        //绘制图形;
+        //参数1：mode：gl.LINES等
+        //参数2：first：从哪个顶点开始绘制
+        //参数3：count：绘制需要几个顶点
+        //从第一个顶点开始绘制（这里也只有1个顶点），绘制1个点
+        gl.drawArrays(gl.POINTS, 0, 1);
+      };
+    </script>
+  </body>
+</html>

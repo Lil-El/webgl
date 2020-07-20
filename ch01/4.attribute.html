@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas width="100" height="100" id="example">11</canvas>
+    <script>
+      /**
+      使用js程序传递位置信息给顶点着色器
+      1.attribute变量：传输与顶点有关的数据
+      2.uniform变量：传输与所有顶点都相同的数据
+      */
+      window.onload = () => {
+        let canvas = document.getElementById("example");
+        let gl = canvas.getContext("webgl");
+
+        let VSHADER_SOURCE = `
+          //存储限定符 类型 变量名
+          attribute vec4 a_Position;
+          attribute float a_PointSize;
+          void main(){
+            gl_Position = a_Position;
+            gl_PointSize = a_PointSize;
+          }
+        `;
+        let FSHADER_SOURCE = `
+          void main(){
+            gl_FragColor = vec4(1.0,0.0,0.0,1.0);
+          }
+        `;
+        //initShaders
+        let vShader = gl.createShader(gl.VERTEX_SHADER);
+        let fShader = gl.createShader(gl.FRAGMENT_SHADER);
+        gl.shaderSource(vShader, VSHADER_SOURCE);
+        gl.shaderSource(fShader, FSHADER_SOURCE);
+        gl.compileShader(vShader);
+        gl.compileShader(fShader);
+        let vComp = gl.getShaderParameter(vShader, gl.COMPILE_STATUS);
+        let fComp = gl.getShaderParameter(fShader, gl.COMPILE_STATUS);
+        if (!vComp) {
+          gl.deleteShader(vShader);
+        }
+        if (!fComp) {
+          gl.deleteShader(fShader);
+        }
+        //program
+        let program = gl.createProgram();
+        gl.attachShader(program, vShader);
+        gl.attachShader(program, fShader);
+        gl.linkProgram(program);
+        let linked = gl.getProgramParameter(program, gl.LINK_STATUS);
+        if (!linked) {
+          gl.deleteProgram(program);
+          gl.deleteShader(vShader);
+          gl.deleteShader(fShader);
+        }
+        gl.program = program;
+        //1获取a_Position变量
+        //2给该变量赋值
+        let a_Position = gl.getAttribLocation(gl.program, "a_Position");
+        let a_PointSize = gl.getAttribLocation(gl.program, "a_PointSize");
+        //vertexAttrib1f、vertexAttrib2f、vertexAttrib3f、vertexAttrib4f
+        //表示几个float，分别是v1，v2，v3，v4；四个分量的值
+        gl.vertexAttrib3f(a_Position, 0.0, 0.0, 0.0); //表示x、y、z的坐标、齐次坐标
+        gl.vertexAttrib1f(a_PointSize, 10); //表示x、y、z的坐标、齐次坐标
+        //use
+        gl.useProgram(program);
+        gl.clearColor(0, 0, 0, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.POINT, 0, 1);
+      };
+      /*
+        齐次坐标：提高三维数据的处理的效率
+        它是四维的，但是当值为1时，就相当于是前三个点的坐标值
+        齐次坐标（x,y,z,w）相对于三维坐标（x/w,y/w,z/w）  w必须大于等于0
+      */
+    </script>
+  </body>
+</html>
