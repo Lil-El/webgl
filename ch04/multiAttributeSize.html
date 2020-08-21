@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <canvas id="canvas" width="400" height="400"></canvas>
+    <script>
+      let canvas = document.getElementById("canvas");
+      let gl = canvas.getContext("webgl");
+      let VSHADER_SOURCE = `
+        attribute vec4 a_Position;
+        attribute float a_PointSize;
+        void main(){
+          gl_Position = a_Position;
+          gl_PointSize = a_PointSize;
+        }
+      `;
+      let FSHADER_SOURCE = `
+        void main(){
+          gl_FragColor = vec4(1.0,0.0,0.0,1.0);
+        }
+      `;
+
+      let vShader = gl.createShader(gl.VERTEX_SHADER);
+      let fShader = gl.createShader(gl.VERTEX_SHADER);
+      gl.shaderSource(vShader, VSHADER_SOURCE);
+      gl.shaderSource(fShader, FSHADER_SOURCE);
+      gl.compileShader(vShader);
+      gl.compileShader(fShader);
+    </script>
+  </body>
+</html>
