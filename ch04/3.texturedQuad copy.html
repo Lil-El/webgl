@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <canvas id="canvas" width="400" height="400"></canvas>
+    <script>
+      let VSHADER_SOURCE = `
+      attribute vec4 a_Position;
+      attribute vec2 a_TexCoord;
+      varying vec2 v_TexCoord;
+      void main() {
+        gl_Position = a_Position;
+        v_TexCoord = a_TexCoord;
+      }
+      `;
+      let FSHADER_SOURCE = `
+      #ifdef GL_ES
+      precision mediump float;
+      #endif
+      uniform sampler2D u_Sampler;
+      varying vec2 v_TexCoord;
+      void main() {
+        gl_FragColor = texture2D(u_Sampler, v_TexCoord);
+      }
+      `;
+      let canvas = document.getElementById("canvas");
+      let gl = canvas.getContext("webgl");
+
+      let vShader = gl.createShader(gl.VERTEX_SHADER);
+      let fShader = gl.createShader(gl.FRAGMENT_SHADER);
+      gl.shaderSource(vShader, VSHADER_SOURCE);
+      gl.shaderSource(fShader, FSHADER_SOURCE);
+      gl.compileShader(vShader);
+      gl.compileShader(fShader);
+      let program = gl.createProgram();
+      gl.attachShader(program, vShader);
+      gl.attachShader(program, fShader);
+      gl.linkProgram(program);
+      let linked = gl.getProgramParameter(program, gl.LINK_STATUS);
+      gl.program = program;
+      gl.useProgram(program);
+
+      let n = 4;
+      let verticesTexCoords = new Float32Array([
+        // 纹理坐标，gl坐标
+        -0.5,
+        0.5,
+        0.0,
+        1.0,
+        -0.5,
+        -0.5,
+        0.0,
+        0.0,
+        0.5,
+        0.5,
+        1.0,
+        1.0,
+        0.5,
+        -0.5,
+        1.0,
+        0.0,
+      ]);
+      let vertexTexCoordBuffer = gl.createBuffer();
+      // 将纹理和顶点坐标写入缓冲区对象中
+      gl.bindBuffer(gl.ARRAY_BUFFER, vertexTexCoordBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, verticesTexCoords, gl.STATIC_DRAW);
+      let FSIZE = verticesTexCoords.BYTES_PER_ELEMENT;
+      let a_Position = gl.getAttribLocation(gl.program, "a_Position");
+      gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, FSIZE * 4, 0);
+      gl.enableVertexAttribArray(a_Position);
+      // 将纹理坐标分配给a_TextCoord，并开启
+      let a_TexCoord = gl.getAttribLocation(gl.program, "a_TexCoord");
+      gl.vertexAttribPointer(
+        a_TexCoord,
+        2,
+        gl.FLOAT,
+        false,
+        FSIZE * 4,
+        FSIZE * 2
+      );
+      gl.enableVertexAttribArray(a_TexCoord);
+      gl.clearColor(0.0, 0.0, 0.0, 1.0);
+      //创建纹理对象
+      let texture = gl.createTexture();
+      let u_Sampler = gl.getUniformLocation(gl.program, "u_Sampler");
+      let image = new Image();
+      image.onload = function () {
+        loadTexture(gl, n, texture, u_Sampler, image);
+      };
+      image.src = "http://127.0.0.1:5500/WebGL_Guide_Code/resources/sky.jpg";
+      function loadTexture(gl, n, texture, u_Sampler, image) {
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1); // Flip the image's y axis
+        // Enable texture unit0
+        gl.activeTexture(gl.TEXTURE0);
+        // Bind the texture object to the target
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        // Set the texture parameters
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        // Set the texture image
+        gl.texImage2D(
+          gl.TEXTURE_2D,
+          0,
+          gl.RGB,
+          gl.RGB,
+          gl.UNSIGNED_BYTE,
+          image
+        );
+
+        // Set the texture unit 0 to the sampler
+        gl.uniform1i(u_Sampler, 0);
+
+        gl.clear(gl.COLOR_BUFFER_BIT); // Clear <canvas>
+
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, n); // Draw the rectangle
+      }
+    </script>
+  </body>
+</html>
