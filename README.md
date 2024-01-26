@@ -6,9 +6,12 @@
 - [ch04: 颜色与纹理][4]
 - [ch05: OpenGL ES 着色器语言][5]
 
+- [webglVideoAnimate: 透明视频动画][6]
 
-[1]: https://github.com/Lil-El/WebGL/blob/master/ch01/README.md
-[2]: https://github.com/Lil-El/WebGL/blob/master/ch02/README.md
-[3]: https://github.com/Lil-El/WebGL/blob/master/ch03/README.md
-[4]: https://github.com/Lil-El/WebGL/blob/master/ch04/README.md
-[5]: https://github.com/Lil-El/WebGL/blob/master/ch05/README.md
+
+[1]: ./ch01/README.md
+[2]: ./ch02/README.md
+[3]: ./ch03/README.md
+[4]: ./ch04/README.md
+[5]: ./ch05/README.md
+[5]: ./webglVideoAnimate/README.md
