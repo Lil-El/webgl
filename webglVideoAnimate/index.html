@@ -146,8 +146,8 @@
           const aPosition = gl.getAttribLocation(program, "a_position");
           // 允许属性读取，将缓冲区的值分配给特定的属性
           gl.enableVertexAttribArray(aPosition);
-
           gl.vertexAttribPointer(aPosition, 2, gl.FLOAT, false, 0, 0);
+
           gl.bindBuffer(gl.ARRAY_BUFFER, buffer.texture);
           const aTexCoord = gl.getAttribLocation(program, "a_texCoord");
           gl.enableVertexAttribArray(aTexCoord);
