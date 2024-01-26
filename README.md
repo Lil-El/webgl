@@ -14,4 +14,4 @@
 [3]: ./ch03/README.md
 [4]: ./ch04/README.md
 [5]: ./ch05/README.md
-[5]: ./webglVideoAnimate/README.md
+[6]: ./webglVideoAnimate/README.md
